@@ -1,7 +1,9 @@
 from enum import StrEnum
 from typing import TypeAlias, Self
+import dataclasses
 from dataclasses import dataclass
 from collections.abc import Iterator
+from argparse import ArgumentParser
 
 MAIN = "__MAIN__"
 
@@ -413,87 +415,27 @@ class Program:
 
 
 if __name__ == "__main__":
-    program2 = """
-        : ADD_2 2 + ;
-        : SUBTRACT_FROM_3 3 - ;
-        1 ADD_2 SUBTRACT_FROM_3 .
-        1 2 < .
-        1 3 4 + + .
-        6 77 53 ..
-        1 1 > IF
-          10 .
-        ELSE
-          20 .
-        THEN
+    parser = ArgumentParser(description="Bibi Language Interpreter")
+    parser.add_argument("file", type=str, help="Path to the program file")
+    parser.add_argument(
+        "--debug", action="store_true", help="Run the program in debug mode"
+    )
+    parser.add_argument(
+        "--lex", action="store_true", help="Print the bytecode of the program"
+    )
+    pass
 
-        : TEST_IF 10 = IF 1 ELSE 0 THEN ;
-        10 TEST_IF .
-        20 TEST_IF .
+    args = parser.parse_args()
 
-        10 10 = IF 20 20 = IF 1 ELSE 0 THEN THEN .
+    with open(args.file, "r") as file:
+        program_content = file.read()
 
-        ..
-        8 DUP ..
-    """
+    program = Program(program_content)
 
-    program = """
-        : -- 1 SWAP - DUP ;
-        99
-        10 0 DO -- . LOOP
-    """
-    fibonacci = """
-        : FIB
-            : GREATER_THAN_1 DUP 1 < ;
-            : MINUS_2_FROM_TOP 2 SWAP - ;
-            GREATER_THAN_1 IF
-                MINUS_2_FROM_TOP
-                0 1
-                ROT 0 DO
-                    DUP
-                    ROT
-                    +
-                LOOP
-            THEN
-        ;
-
-        10 FIB .
-    """
-
-    cumulative_sum = """
-        : sum
-            DUP
-            0 ROT
-            0 DO
-                DUP
-                1 +
-            LOOP
-            0 DO
-                +
-            LOOP
-        ;
-
-        10 sum .
-    """
-    factorial = """
-        : factorial ( x -- x )
-            .( The factorial is calculated by first generating all the digits, before multiplying them together )
-            DUP
-            1 ROT
-            1 DO
-                DUP
-                1 +
-            LOOP
-            1 DO
-                *
-            LOOP
-        ;
-
-        3 factorial .
-
-    """
-    program3 = "10 20 = IF 1 . THEN"
-    comment = ": hello_world ( hello world ) ;"
-    unended_comment = ": hello_world ( hello world ;"
-    ops = Program(factorial)
-    ops.lex(debug=False)
-    ops.simulate(debug=False)
+    if args.lex:
+        program.lex(debug=False)
+        from pprint import pprint
+        pprint(program.namespace)
+    else:
+        program.lex(debug=args.debug)
+        program.simulate(debug=args.debug)
