@@ -1,0 +1,14 @@
+: factorial ( x -- x )
+    .( The factorial is calculated by first generating all the digits, before multiplying them together )
+    DUP
+    1 ROT
+    1 DO
+        DUP
+        1 +
+    LOOP
+    1 DO
+        *
+    LOOP
+;
+
+3 factorial .

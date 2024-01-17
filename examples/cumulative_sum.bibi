@@ -1,0 +1,13 @@
+: sum
+    DUP
+    0 ROT
+    0 DO
+        DUP
+        1 +
+    LOOP
+    0 DO
+        +
+    LOOP
+;
+
+10 sum .
