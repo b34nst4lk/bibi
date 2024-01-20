@@ -21,6 +21,7 @@ class Op(StrEnum):
     Minus = "-"
     Times = "*"
     Divide = "/"
+    Modulo = "%"
 
     FuncCall = "..."  # This is used for executing words
 
@@ -35,11 +36,16 @@ class Op(StrEnum):
     SetupDo = "_SETUP_DO"
     Do = "DO"
     Loop = "LOOP"
+    LoopCount = "LOOP_COUNT"
 
+    PrintCommentStart = ".("
     CommentStart = "("
     CommentEnd = ")"
     Comment = "(...)"
-    PrintCommentStart = ".("
+
+    AnnotationCommentStart = "(:"
+    AnnotationCommentEnd = ":)"
+    # )
 
 
 OpCodes: TypeAlias = list[tuple[Op, str | None]]
@@ -109,6 +115,9 @@ class DataStack:
     def dump(self):
         print(self.pop())
 
+    def peek(self):
+        return self.stack[-1]
+
 
 class Program:
     def __init__(self, program: str):
@@ -142,7 +151,14 @@ class Program:
                 continue
 
             # Handle comments
-            comment_end_error = not (word == Op.CommentEnd and not in_comment)
+            comment_end_error = not (
+                word
+                in (
+                    Op.CommentEnd,
+                    Op.AnnotationCommentEnd,
+                )
+                and not in_comment
+            )
             assert (
                 comment_end_error
             ), f"{Op.CommentEnd}: No matching {Op.CommentStart} found"
@@ -162,13 +178,12 @@ class Program:
                 else:
                     comment_list.append(token)
                     continue
-            elif word == Op.CommentStart:
-                op_codes.append(OpCode(token=token, op=Op.CommentStart))
-                in_comment = True
-                comment_list = []
-                continue
-            elif word == Op.PrintCommentStart:
-                op_codes.append(OpCode(token=token, op=Op.PrintCommentStart))
+            elif word in (
+                Op.CommentStart,
+                Op.PrintCommentStart,
+                Op.AnnotationCommentStart,
+            ):
+                op_codes.append(OpCode(token=token, op=word))
                 in_comment = True
                 comment_list = []
                 continue
@@ -195,35 +210,17 @@ class Program:
                             val=word,
                         )
                     )
-                # Handle operations
-                case Op.Swap:
-                    op_codes.append(OpCode(token=token, op=Op.Swap))
-                case Op.Dup:
-                    op_codes.append(OpCode(token=token, op=Op.Dup))
-                case Op.RotateDown:
-                    op_codes.append(OpCode(token=token, op=Op.RotateDown))
-                case Op.RotateUp:
-                    op_codes.append(OpCode(token=token, op=Op.RotateUp))
-                case Op.Dump:
-                    op_codes.append(OpCode(token=token, op=Op.Dump))
-                case Op.DumpAll:
-                    op_codes.append(OpCode(token=token, op=Op.DumpAll))
-                case Op.Plus:
-                    op_codes.append(OpCode(token=token, op=Op.Plus))
-                case Op.Minus:
-                    op_codes.append(OpCode(token=token, op=Op.Minus))
-                case Op.Times:
-                    op_codes.append(OpCode(token=token, op=Op.Times))
-                case Op.Divide:
-                    op_codes.append(OpCode(token=token, op=Op.Divide))
+                # Handle stack operations
+                case Op.Swap | Op.Dup | Op.RotateDown | Op.RotateUp | Op.Dump | Op.DumpAll:
+                    op_codes.append(OpCode(token=token, op=word))
+
+                # handle arithmetic operations
+                case Op.Plus | Op.Minus | Op.Times | Op.Divide | Op.Modulo:
+                    op_codes.append(OpCode(token=token, op=word))
 
                 # Handler comparisons
-                case Op.Equals:
-                    op_codes.append(OpCode(token=token, op=Op.Equals))
-                case Op.GreaterThan:
-                    op_codes.append(OpCode(token=token, op=Op.GreaterThan))
-                case Op.LessThan:
-                    op_codes.append(OpCode(token=token, op=Op.LessThan))
+                case Op.Equals | Op.GreaterThan | Op.LessThan:
+                    op_codes.append(OpCode(token=token, op=word))
 
                 # Handle conditionals
                 # OpCodes for conditionals are using a stack
@@ -273,6 +270,12 @@ class Program:
                     op_code = OpCode(token=token, op=Op.Do, val=len(op_codes))
                     op_codes.append(op_code)
                     do_stack.append(op_code)
+
+                case Op.LoopCount:
+                    assert (
+                        do_stack
+                    ), "LoopCount can only be defined in a DO .. LOOP block"
+                    op_codes.append(OpCode(token=token, op=Op.LoopCount))
 
                 case Op.Loop:
                     previous_op_code = do_stack.pop()
@@ -395,6 +398,10 @@ class Program:
                     start, end = self.stack.pop(), self.stack.pop()
                     self.do_stack.push(end)
                     self.do_stack.push(start)
+
+                case Op.LoopCount:
+                    self.stack.push(self.do_stack.peek() - 1)
+
                 case Op.Do:
                     start, end = self.do_stack.pop(), self.do_stack.pop()
                     if start == end:
@@ -434,6 +441,7 @@ if __name__ == "__main__":
     if args.lex:
         program.lex(debug=False)
         from pprint import pprint
+
         pprint(program.namespace)
     else:
         program.lex(debug=args.debug)

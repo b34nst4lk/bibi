@@ -1,4 +1,4 @@
-: FIB
+: FIB (: n - n' :)
     : GREATER_THAN_1 DUP 1 < ;
     : MINUS_2_FROM_TOP 2 SWAP - ;
     GREATER_THAN_1 IF
