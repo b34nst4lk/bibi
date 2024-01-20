@@ -47,7 +47,7 @@ Stack effects annotation represents what happens at the top of the stack. The an
 `(: [token_1 ... token_n] -- [token_1 ... token_n] :)`. The brackets `(: ... :)` denote that this is a stack effects
 annotation, and ` -- ` delimits the before and after. You can have 0 or more elements on either side of ` -- `.
 
-Pushing a single integer onto the stack, for example, is annotated with `:( -- x )`, and a pop can be respresented by
+Pushing a single integer onto the stack, for example, is annotated with `(: -- x )`, and a pop can be respresented by
 `(: x -- :)`
 
 ## Comments
@@ -75,8 +75,8 @@ Strings and comments can be printed out by replacing `(` with `.(`.
 ```
 
 ### Annotation
-Stack effects can be annotated using replacing `(` and `)` with `(:` and `:)`. Stack effects annotations represent the
-state of the top of the stack before and after. Here are some examples
+Stack effects annotations represent the state of the top of the stack before and after some operation,
+and can be annotated by replacing `(` and `)` with `(:` and `:)`. Here are some examples
 
 ```
 (: x -- x x :)      ( The top item of the stack is duplicated )
@@ -102,10 +102,10 @@ Writing an integer will push the integer onto the stack.
 
 ## Arithmetic operations
 
-Basic mathematical operations can be done with `+`, `-`, `*` and `/`. Unlike most languages where
+Basic mathematical operations can be done with `+`, `-`, `*`, `/` and `%`. Unlike most languages where
 the operator sits between two operands (i.e. `a + b`), the operator indicates that it will perform
 the operation over a predefined number of items off the top of the stack. The stack effects
-annotation for the 4 basic operators are `:( x y -- z )`
+annotation for the 4 basic operators are `(: x y -- z :)`
 
 ```
 1
@@ -121,7 +121,7 @@ annotation for the 4 basic operators are `:( x y -- z )`
 Apart from the basic pop and push operations, the following operations combine the two to allow
 convenient control of the stack
 
-### DUP `:( x -- x x )`
+### DUP `(: x -- x x :)`
 Duplicate the top item of the stack twice
 
 ```
@@ -131,7 +131,7 @@ DUP
     ( Stack: 1 1 )
 ```
 
-### SWAP `:( x y -- y x )`
+### SWAP `(: x y -- y x :)`
 Swap the first two items of the stack
 ```
 1 2
@@ -149,7 +149,7 @@ ROT
     ( Stack: 2 3 1 )
 ```
 
-### -ROT `:( x y z -- z x y )`
+### -ROT `(: x y z -- z x y :)`
 Rotates the top three items upwards so that the top of the 3 is now at the bottom
 ```
 1 2 3
@@ -158,7 +158,7 @@ Rotates the top three items upwards so that the top of the 3 is now at the botto
     ( Stack: 3 1 2 )
 ```
 
-### . `:( x -- )`
+### . `(: x -- :)`
 Pops the top item of the stack and prints it
 
 ```
@@ -213,7 +213,7 @@ ELSE
 Bibi provides looping constructs to perform repetitive operations. The primary looping construct in Bibi is the
 `DO...LOOP` structure.
 
-### ... DO ... LOOP `( end start -- )`
+### ... DO ... LOOP `(: end start -- :)`
 The DO...LOOP construct in Bibi allows for executing a sequence of operations repeatedly for a specified number
 of times. This loop structure is unique to stack-based languages, as it manages the loop counter separately from
 the main stack.
@@ -234,7 +234,7 @@ LOOP             ( End of the loop block; after the loop, the stack has the sum 
 .                ( Output the sum, which is 10 )
 ```
 
-In this example, the DO...LOOP structure iterates from 1 to 4. In each iteration, it pushes the current loop count on the stack
+In this example, the DO...LOOP structure iterates from 0 to 4. In each iteration, it pushes the current loop count on the stack
 (0, 1, 2, 3, 4) and adds it to an accumulator initialized to 0. After the loop completes, the sum (10) is left on the stack
 and is then output.
 
