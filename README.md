@@ -1,5 +1,6 @@
 # Resources
-- [Porth](https://www.youtube.com/playlist?list=PLpM-Dvs8t0VbMZA7wW9aR3EtBqe2kinu4) - A
+- [Porth](https://www.youtube.com/playlist?list=PLpM-Dvs8t0VbMZA7wW9aR3EtBqe2kinu4) - Tsoding's
+livestream series on building a stack based programming language
 - ["Concatenative programming and stack-based languages" by Douglas Creager](https://www.youtube.com/watch?v=umSuLpjFUf8)
 
 # Introduction
@@ -41,9 +42,13 @@ The following example implements a function that derives the n-th fibonacci numb
 As a stack based language, all operations and calculations are oriented around the stack. The code is
 interpreted and executed from left to right in sequence.
 
-We annotate stack effects with `:( [token1 token2 ...] -- [token1 token2])`. Pushing a single integer
-onto the stack, for example, is annotated with `:( -- x )`, and a pop can be respresented by
-`:( x -- )`
+## Stack effects
+Stack effects annotation represents what happens at the top of the stack. The annotation follows the structure
+`(: [token_1 ... token_n] -- [token_1 ... token_n] :)`. The brackets `(: ... :)` denote that this is a stack effects
+annotation, and ` -- ` delimits the before and after. You can have 0 or more elements on either side of ` -- `.
+
+Pushing a single integer onto the stack, for example, is annotated with `:( -- x )`, and a pop can be respresented by
+`(: x -- :)`
 
 ## Comments
 
@@ -205,41 +210,33 @@ ELSE
 ```
 
 ## Loops
+Bibi provides looping constructs to perform repetitive operations. The primary looping construct in Bibi is the
+`DO...LOOP` structure.
 
 ### ... DO ... LOOP `( end start -- )`
-Looping can be done through using `.. DO .. LOOP `. Because the stack needs to be freed up for any operations
-you may want to do, the top two elements are popped from the stack and moved to a separate `do` stack, which
-is responsible for tracking the progress of the loop. Therefore, you are free to use the stack freely.
+The DO...LOOP construct in Bibi allows for executing a sequence of operations repeatedly for a specified number
+of times. This loop structure is unique to stack-based languages, as it manages the loop counter separately from
+the main stack.
+
+Here's how the DO...LOOP works:
+
+- *Initialization*: Two integers are required on the top of the stack before the DO keyword. These integers specify the start and end values for the loop counter. The top value is the end value (exclusive), and the second value is the start value.
+- *Execution*: After DO, the loop starts executing from the start value up to, but not including, the end value. The operations between DO and LOOP are executed for each iteration.
+- *Termination*: The loop ends when the counter reaches the end value. The LOOP keyword marks the end of the loop block.
 
 ```
-1
-    ( Stack: 1 )
-10 0
-    ( Stack: 1 10 0)
-DO  ( Loop from 0 to 10; if counter is = 10, jump to after LOOP )
-    ( Stack: 1; value will transform after each iteration)
-1
-    ( Stack: 1 1; value of the second item will transform after each iteration)
-+
-    ( Stack: 2)
-LOOP ( Jump back to DO )
+0                ( Stack: 0 - accumulator for the sum )
+5 0              ( Stack: 0 5 1 - set up the loop for 0 to 4 )
+DO               ( Start the loop )
+    LOOP_COUNT   ( Duplicate the top value, which is our loop counter )
+    +            ( Add it to our accumulator )
+LOOP             ( End of the loop block; after the loop, the stack has the sum )
+.                ( Output the sum, which is 10 )
 ```
 
-### LOOP_COUNT
-`LOOP_COUNT` pushes the current iteration count onto the main stack.
-
-```
-10 0
-    ( Stack: 10 0)
-DO  ( Loop from 0 to 10; if counter is = 10, jump to after LOOP )
-    ( Stack: 1; value will transform after each iteration)
-LOOP_COUNT
-    ( Stack: 1 1; value of the second item will transform after each iteration)
-+
-    ( Stack: 2)
-LOOP ( Jump back to DO )
-```
-
+In this example, the DO...LOOP structure iterates from 1 to 4. In each iteration, it pushes the current loop count on the stack
+(0, 1, 2, 3, 4) and adds it to an accumulator initialized to 0. After the loop completes, the sum (10) is left on the stack
+and is then output.
 
 ## Functions
 Functions are declared in the following format.
