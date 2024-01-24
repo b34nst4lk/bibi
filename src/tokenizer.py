@@ -1,4 +1,4 @@
-from typing import Self
+from typing import Self, TypeAlias
 from dataclasses import dataclass
 from collections.abc import Iterator
 
@@ -33,13 +33,6 @@ class Token:
         return final_token
 
 
-@dataclass
-class OpCode:
-    token: Token | None
-    op: Op
-    val: str | None = None
-
-
 def tokenizer(s: str) -> Iterator[Token]:
     row = 1
     for line in s.split("\n"):
@@ -55,3 +48,16 @@ def tokenizer(s: str) -> Iterator[Token]:
             # to handle column count accurately
             col += 1
         row += 1
+
+
+@dataclass
+class OpCode:
+    token: Token | None
+    op: Op
+    val: str | None = None
+
+    def __repr__(self):
+        return f"{self.op.name:<22}{self.token}\tval: {self.val}"
+
+
+OpCodes: TypeAlias = list[tuple[Op, str | None]]

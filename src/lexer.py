@@ -1,8 +1,8 @@
 from typing import Iterable
 
-from src.op_codes import Op, MAIN, OpCodes
+from src.op_codes import Op, MAIN
 from src.stack import Stack
-from src.tokenizer import Token, OpCode
+from src.tokenizer import Token, OpCode, OpCodes
 
 
 def lex(tokens: Iterable[Token], debug=True) -> dict[str, OpCodes]:
@@ -63,7 +63,7 @@ def lex(tokens: Iterable[Token], debug=True) -> dict[str, OpCodes]:
             Op.PrintCommentStart,
             Op.AnnotationCommentStart,
         ):
-            op_codes.append(OpCode(token=token, op=word))
+            op_codes.append(OpCode(token=token, op=Op(word)))
             in_comment = True
             comment_list = []
             continue
@@ -92,15 +92,15 @@ def lex(tokens: Iterable[Token], debug=True) -> dict[str, OpCodes]:
                 )
             # Handle stack operations
             case Op.Swap | Op.Dup | Op.RotateDown | Op.RotateUp | Op.Dump | Op.DumpAll:
-                op_codes.append(OpCode(token=token, op=word))
+                op_codes.append(OpCode(token=token, op=Op(word)))
 
             # handle arithmetic operations
             case Op.Plus | Op.Minus | Op.Times | Op.Divide | Op.Modulo:
-                op_codes.append(OpCode(token=token, op=word))
+                op_codes.append(OpCode(token=token, op=Op(word)))
 
             # Handler comparisons
             case Op.Equals | Op.GreaterThan | Op.LessThan:
-                op_codes.append(OpCode(token=token, op=word))
+                op_codes.append(OpCode(token=token, op=Op(word)))
 
             # Handle conditionals
             # OpCodes for conditionals are using a stack

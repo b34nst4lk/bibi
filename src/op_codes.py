@@ -1,5 +1,4 @@
 from enum import StrEnum
-from typing import TypeAlias
 
 
 class Op(StrEnum):
@@ -43,7 +42,4 @@ class Op(StrEnum):
     # ) Useless comment added because the open brackets keep messing with my indentation
 
 
-OpCodes: TypeAlias = list[tuple[Op, str | None]]
-
-
-MAIN = "__MAIN__"
+MAIN = "main"

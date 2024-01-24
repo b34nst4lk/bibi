@@ -1,5 +1,6 @@
-from src.op_codes import Op, OpCodes, MAIN
+from src.op_codes import Op, MAIN
 from src.stack import Stack
+from src.tokenizer import OpCodes
 
 
 def simulate(

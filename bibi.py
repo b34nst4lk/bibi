@@ -1,5 +1,7 @@
 from argparse import ArgumentParser
+from pprint import pprint
 
+from src.compile import compile
 from src.simulate import simulate
 from src.lexer import lex
 from src.tokenizer import tokenizer
@@ -14,7 +16,9 @@ if __name__ == "__main__":
     parser.add_argument(
         "--lex", action="store_true", help="Print the bytecode of the program"
     )
-    pass
+    parser.add_argument(
+        "--compile", action="store_false", help="Compiles the program to LLVM IR"
+    )
 
     args = parser.parse_args()
 
@@ -23,16 +27,19 @@ if __name__ == "__main__":
 
     tokens = tokenizer(program_content)
 
+    program = lex(tokens=tokens, debug=False)
     if args.lex:
-        namespace = lex(tokens=tokens, debug=False)
-        from pprint import pprint
 
-        pprint(namespace)
+        print("===================== LEX ====================\n")
+        pprint(program)
+    if args.compile:
+        with open("output.ll", "w") as f:
+            compile(program, f)
     else:
         if args.debug:
             print("===================== LEX ====================\n")
         program = lex(tokens=tokens, debug=args.debug)
         if args.debug:
-            print("\n\n===================== SIMULATe ====================")
+            print("\n\n===================== SIMULATE ====================")
 
         simulate(program=program, debug=args.debug)
