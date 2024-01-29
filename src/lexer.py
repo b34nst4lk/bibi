@@ -10,8 +10,8 @@ def lex(tokens: Iterable[Token], debug=True) -> dict[str, OpCodes]:
     current_namespace = MAIN
     next_token_is_namespace = False
     namespace_stack = Stack()
-    if_stack = []
-    do_stack = []
+    if_stack = Stack()
+    do_stack = Stack()
     declaration_stack = Stack()
     in_comment = False
     comment_list = []
@@ -115,22 +115,21 @@ def lex(tokens: Iterable[Token], debug=True) -> dict[str, OpCodes]:
             case Op.If:
                 op_code = OpCode(token=token, op=Op.If)
                 op_codes.append(op_code)
-                if_stack.append(op_code)
+                if_stack.push(op_code)
 
             case Op.Else:
                 op_code = OpCode(token=token, op=Op.Else)
                 op_codes.append(op_code)
 
                 previous_op_code = if_stack.pop()
-                assert (
-                    previous_op_code.op == Op.If
-                ), "ELSE must come after an IF word"
+                assert previous_op_code.op == Op.If, "ELSE must come after an IF word"
                 previous_op_code.val = len(op_codes)
 
-                if_stack.append(op_code)
+                if_stack.push(op_code)
 
             case Op.Then:
-                op_codes.append(OpCode(token=token, op=Op.Then))
+                op_code = OpCode(token=token, op=Op.Then)
+                op_codes.append(op_code)
 
                 previous_op_code = if_stack.pop()
                 assert previous_op_code.op in {
@@ -138,6 +137,7 @@ def lex(tokens: Iterable[Token], debug=True) -> dict[str, OpCodes]:
                     Op.Else,
                 }, "THEN must come after IF or ELSE word"
                 previous_op_code.val = len(op_codes)
+                op_code.val = len(op_codes)
 
             # Loops
             # OpCodes for loops are done using a stack
@@ -149,19 +149,21 @@ def lex(tokens: Iterable[Token], debug=True) -> dict[str, OpCodes]:
                 op_codes.append(OpCode(token=None, op=Op.SetupDo))
                 op_code = OpCode(token=token, op=Op.Do, val=len(op_codes))
                 op_codes.append(op_code)
-                do_stack.append(op_code)
+                do_stack.push(op_code)
 
             case Op.LoopCount:
-                assert (
-                    do_stack
-                ), "LoopCount can only be defined in a DO .. LOOP block"
-                op_codes.append(OpCode(token=token, op=Op.LoopCount))
+                assert do_stack, "LoopCount can only be defined in a DO .. LOOP block"
+                op_codes.append(
+                    OpCode(
+                        token=token,
+                        op=Op.LoopCount,
+                        val=do_stack.peek().val,
+                    )
+                )
 
             case Op.Loop:
                 previous_op_code = do_stack.pop()
-                assert (
-                    previous_op_code.op == Op.Do
-                ), "LOOP must come after a DO word"
+                assert previous_op_code.op == Op.Do, "LOOP must come after a DO word"
 
                 val = previous_op_code.val
 
