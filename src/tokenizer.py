@@ -60,4 +60,4 @@ class OpCode:
         return f"{self.op.name:<22}{self.token}\tval: {self.val}"
 
 
-OpCodes: TypeAlias = list[tuple[Op, str | None]]
+OpCodes: TypeAlias = list[OpCode]

@@ -84,7 +84,7 @@ def simulate(
                 print(main_stack.pop())
             case Op.DumpAll:
                 while main_stack.stack:
-                    main_stack.dump()
+                    print(main_stack.pop())
 
             # Print strings
             case Op.PrintCommentStart:
